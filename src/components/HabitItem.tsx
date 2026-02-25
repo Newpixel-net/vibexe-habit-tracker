@@ -73,7 +73,7 @@ export function HabitItem({ habit, completions, isCompletedToday, onToggle, onTo
 
   return (
     <>
-      <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-5 transition-all duration-300 ${justCompleted ? 'animate-completion-flash' : ''}`}>
+      <div className={`glass-card rounded-xl p-3 sm:p-5 transition-all duration-300 ${justCompleted ? 'animate-completion-flash' : ''}`}>
         {/* Top row: toggle, name, menu */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-2.5 sm:gap-3 flex-1 min-w-0">
