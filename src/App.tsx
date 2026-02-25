@@ -19,6 +19,7 @@ import { ArchivedHabits } from './components/ArchivedHabits';
 import { StatsPage } from './components/StatsPage';
 import { ToastContainer } from './components/ToastContainer';
 import { ProgressRing } from './components/ProgressRing';
+import { HabitTemplates } from './components/HabitTemplates';
 import { getToday, isSameDay } from './utils/date';
 import { exportHabitsToCSV } from './utils/export';
 import { HabitColor, HabitCategory, AppPage } from './types';
@@ -140,6 +141,8 @@ function HabitTrackerContent() {
             <div className="mb-8">
               <HabitForm onSubmit={handleAddHabit} disabled={isLoading} />
             </div>
+
+            <HabitTemplates onSelect={handleAddHabit} />
 
             {/* Error State */}
             {error && (
