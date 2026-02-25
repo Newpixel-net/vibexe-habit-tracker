@@ -113,9 +113,31 @@ function HabitTrackerContent() {
     addToast('success', `"${name}" added`);
   }, [createHabit, addToast]);
 
+  // Streak milestones to celebrate
+  const MILESTONES = [7, 14, 21, 30, 50, 75, 100, 150, 200, 365];
+
   const handleToggle = useCallback(async (habitId: string) => {
+    const wasCompleted = isCompleted(habitId, today);
     await toggleCompletion(habitId, today);
-  }, [toggleCompletion, today]);
+
+    // Check streak milestones only when marking complete (not unchecking)
+    if (!wasCompleted) {
+      // After toggle, recalculate streak from updated completions
+      // We use a short delay to let state settle from optimistic update
+      setTimeout(() => {
+        const habit = habits.find(h => h.id === habitId);
+        if (!habit) return;
+        const hCompletions = completions.filter(c => c.habit_id === habitId);
+        // The completion we just added won't be in the completions array yet (optimistic),
+        // so add 1 to account for it if streak was continuing
+        const streak = calculateStreak(hCompletions);
+        // streak includes today's completion from the optimistic update
+        if (MILESTONES.includes(streak)) {
+          addToast('success', `${streak}-day streak on "${habit.name}"! Keep going!`);
+        }
+      }, 100);
+    }
+  }, [toggleCompletion, today, isCompleted, habits, completions, addToast]);
 
   const handleEdit = useCallback(async (id: string, updates: { name?: string; color?: HabitColor; category?: HabitCategory }) => {
     await updateHabit(id, updates);
