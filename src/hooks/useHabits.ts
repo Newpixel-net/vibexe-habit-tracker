@@ -24,8 +24,30 @@ export function useHabits(userId: string | null): UseHabitsReturn {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   // Track IDs we've just created locally to avoid SSE duplicates
   const recentlyCreatedIds = useRef<Set<string>>(new Set());
+
+  // Ensure auth token is loaded before making data calls
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // Force SDK to sync auth state from localStorage
+        const currentUser = await app.auth.getCurrentUser();
+        if (currentUser) {
+          setAuthReady(true);
+        } else {
+          setAuthReady(false);
+        }
+      } catch {
+        setAuthReady(false);
+      }
+    };
+    
+    if (userId) {
+      checkAuth();
+    }
+  }, [userId]);
 
   const fetchHabits = useCallback(async () => {
     if (!userId) {
@@ -47,20 +69,26 @@ export function useHabits(userId: string | null): UseHabitsReturn {
 
       setHabits(result.data as unknown as Habit[]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load habits');
+      const message = err instanceof Error ? err.message : 'Failed to load habits';
+      setError(message);
+      // If we get a 401, the session may have expired
+      if (message.includes('401') || message.includes('Unauthorized')) {
+        setAuthReady(false);
+      }
     } finally {
       setLoading(false);
     }
   }, [userId]);
 
   useEffect(() => {
-    fetchHabits();
-  }, [fetchHabits]);
+    if (authReady) {
+      fetchHabits();
+    }
+  }, [fetchHabits, authReady]);
 
   // Real-time subscription — only handles events from OTHER clients/tabs.
-  // Local mutations apply state directly; we skip SSE events for IDs we just created.
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !authReady) return;
 
     const unsubscribe = app.data.subscribe('habits', { filter: { user_id: userId } }, (event) => {
       const record = event.record as unknown as Habit;
@@ -68,7 +96,7 @@ export function useHabits(userId: string | null): UseHabitsReturn {
       if (event.action === 'created') {
         if (recentlyCreatedIds.current.has(record.id)) {
           recentlyCreatedIds.current.delete(record.id);
-          return; // skip — we already added this locally
+          return;
         }
         setHabits(prev => {
           if (prev.some(h => h.id === record.id)) return prev;
@@ -82,10 +110,16 @@ export function useHabits(userId: string | null): UseHabitsReturn {
     });
 
     return unsubscribe;
-  }, [userId]);
+  }, [userId, authReady]);
 
   const createHabit = useCallback(async (name: string, color?: HabitColor, category?: HabitCategory): Promise<Habit> => {
     if (!userId) throw new Error('User not authenticated');
+
+    // Ensure we have a valid session before creating
+    const currentUser = await app.auth.getCurrentUser();
+    if (!currentUser) {
+      throw new Error('Session expired. Please sign in again.');
+    }
 
     const result = await app.data.create('habits', {
       name: name.trim(),
@@ -107,13 +141,11 @@ export function useHabits(userId: string | null): UseHabitsReturn {
     const prev = habits.find(h => h.id === id);
     if (!prev) return;
 
-    // Optimistic update
     setHabits(list => list.map(h => h.id === id ? { ...h, ...updates } : h));
 
     try {
       await app.data.update('habits', id, updates);
     } catch (err) {
-      // Revert
       setHabits(list => list.map(h => h.id === id ? prev : h));
       throw err instanceof Error ? err : new Error('Failed to update habit');
     }

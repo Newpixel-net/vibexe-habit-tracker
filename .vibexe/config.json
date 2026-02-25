@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "appId": "bldr_fcjZ7dIk2Ahq3xsZbHJhW",
   "appName": "Simple Habit Tracker App",
-  "apiOrigin": "https://localhost:3000",
+  "apiOrigin": "https://vibexe.online",
   "schema": {
     "version": 1,
     "entities": [
@@ -52,5 +52,5 @@
       }
     ]
   },
-  "generatedAt": "2026-02-25T00:32:11.375Z"
+  "generatedAt": "2026-02-25T11:31:14.094Z"
 }

@@ -1,7 +1,7 @@
 # Simple Habit Tracker App — Vibexe App
 
 ## Platform
-This app runs on **Vibexe** (https://localhost:3000), a no-code/low-code app builder.
+This app runs on **Vibexe** (https://vibexe.online), a no-code/low-code app builder.
 All files are React/TypeScript rendered in a Sandpack browser environment.
 App ID: `bldr_fcjZ7dIk2Ahq3xsZbHJhW`
 
@@ -90,9 +90,7 @@ await app.jobs.create({ name, cronExpression, functionName });
 ### Habit (table: `habits`)
 Fields (id, created_at, updated_at are auto-added):
   - `name`: text (required)
-  - `color`: text — one of: blue, green, purple, orange, pink
-  - `category`: text — one of: health, productivity, learning, fitness, mindfulness, social, finance, creativity, other
-  - `archived`: boolean — soft delete flag (default: false)
+  - `color`: text
   - `user_id`: text (required)
 
 ### HabitCompletion (table: `habit_completions`)
@@ -103,12 +101,8 @@ Fields (id, created_at, updated_at are auto-added):
 
 ## File Structure
 - `App.tsx` — Root component (entry point, default export)
-- `src/sdk.ts` — Shared SDK singleton (all hooks import from here)
 - `vibexe-sdk.ts` — SDK file (auto-injected, do not modify)
-- `src/hooks/` — useAuth, useHabits, useCompletions, useTheme, useToast
-- `src/components/` — UI components (Header, HabitForm, HabitItem, HabitEditModal, CategoryFilter, StatsPage, ArchivedHabits, etc.)
-- `src/utils/` — date, streaks, quotes, export utilities
-- `src/types/` — TypeScript type definitions
+- All other `.tsx`/`.ts` files — Components and utilities
 
 ## Rules
 1. **NEVER** modify `vibexe-sdk.ts` — it is auto-injected by the platform
