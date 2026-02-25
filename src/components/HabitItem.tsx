@@ -67,15 +67,15 @@ export function HabitItem({ habit, completions, isCompletedToday, onToggle, onTo
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-5 transition-colors">
-        <div className="flex items-start justify-between gap-4">
-          {/* Left: Toggle and Name */}
-          <div className="flex items-start gap-3 flex-1 min-w-0">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-5 transition-colors">
+        {/* Top row: toggle, name, menu */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-2.5 sm:gap-3 flex-1 min-w-0">
             <button
               onClick={handleToggle}
               disabled={isToggling}
               className={`
-                flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 flex items-center justify-center
+                flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 flex items-center justify-center mt-0.5
                 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${colors.ring}
                 ${isCompletedToday
                   ? `${colors.border} ${colors.bg} text-white`
@@ -92,13 +92,13 @@ export function HabitItem({ habit, completions, isCompletedToday, onToggle, onTo
             </button>
 
             <div className="flex-1 min-w-0">
-              <h3 className={`font-semibold text-gray-900 dark:text-gray-100 text-base sm:text-lg truncate ${isCompletedToday ? 'line-through opacity-60' : ''}`}>
+              <h3 className={`font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-lg truncate ${isCompletedToday ? 'line-through opacity-60' : ''}`}>
                 {habit.name}
               </h3>
-              <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                 {streak > 0 && (
-                  <span className="inline-flex items-center gap-1 text-sm font-medium text-amber-500">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-medium text-amber-500">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
                     </svg>
                     <span>{streak}d</span>
@@ -107,7 +107,7 @@ export function HabitItem({ habit, completions, isCompletedToday, onToggle, onTo
                 {categoryLabel && categoryLabel !== 'Other' && (
                   <>
                     {streak > 0 && <span className="text-gray-300 dark:text-gray-600">·</span>}
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-1.5 sm:px-2 py-0.5 rounded-full">
                       {categoryLabel}
                     </span>
                   </>
@@ -116,11 +116,9 @@ export function HabitItem({ habit, completions, isCompletedToday, onToggle, onTo
             </div>
           </div>
 
-          {/* Right: Week Grid + Menu */}
-          <div className="flex flex-col items-end gap-2">
+          {/* Desktop: Week Grid + Menu inline */}
+          <div className="hidden sm:flex flex-col items-end gap-2 flex-shrink-0">
             <WeekGrid completions={completions} color={habit.color} onToggleDay={onToggleDay} />
-
-            {/* 3-dot menu */}
             <div className="relative">
               <button
                 onClick={() => setShowMenu(!showMenu)}
@@ -131,34 +129,46 @@ export function HabitItem({ habit, completions, isCompletedToday, onToggle, onTo
                   <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                 </svg>
               </button>
-
               {showMenu && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
                   <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-20">
-                    <button
-                      onClick={() => { setShowMenu(false); setShowEditModal(true); }}
-                      className="w-full text-left px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => { setShowMenu(false); onArchive(); }}
-                      className="w-full text-left px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      Archive
-                    </button>
-                    <button
-                      onClick={() => { setShowMenu(false); setShowDeleteConfirm(true); }}
-                      className="w-full text-left px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                    >
-                      Delete
-                    </button>
+                    <button onClick={() => { setShowMenu(false); setShowEditModal(true); }} className="w-full text-left px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Edit</button>
+                    <button onClick={() => { setShowMenu(false); onArchive(); }} className="w-full text-left px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Archive</button>
+                    <button onClick={() => { setShowMenu(false); setShowDeleteConfirm(true); }} className="w-full text-left px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Delete</button>
                   </div>
                 </>
               )}
             </div>
           </div>
+
+          {/* Mobile: just the menu button */}
+          <div className="sm:hidden relative flex-shrink-0">
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              aria-label="Habit options"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+              </svg>
+            </button>
+            {showMenu && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-20">
+                  <button onClick={() => { setShowMenu(false); setShowEditModal(true); }} className="w-full text-left px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Edit</button>
+                  <button onClick={() => { setShowMenu(false); onArchive(); }} className="w-full text-left px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Archive</button>
+                  <button onClick={() => { setShowMenu(false); setShowDeleteConfirm(true); }} className="w-full text-left px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Delete</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile: Week Grid below name */}
+        <div className="sm:hidden mt-3 pl-8">
+          <WeekGrid completions={completions} color={habit.color} onToggleDay={onToggleDay} />
         </div>
       </div>
 
