@@ -22,7 +22,10 @@ import { ProgressRing } from './components/ProgressRing';
 import { HabitTemplates } from './components/HabitTemplates';
 import { getToday, isSameDay } from './utils/date';
 import { exportHabitsToCSV } from './utils/export';
-import { HabitColor, HabitCategory, AppPage } from './types';
+import { Habit, HabitCompletion, HabitColor, HabitCategory, AppPage } from './types';
+import { calculateStreak } from './utils/streaks';
+
+type SortOption = 'newest' | 'name' | 'streak' | 'category';
 
 function HabitTrackerContent() {
   const { user } = useAuth();
@@ -39,6 +42,8 @@ function HabitTrackerContent() {
   const { addToast } = useToast();
   const [currentPage, setCurrentPage] = useState<AppPage>('habits');
   const [categoryFilter, setCategoryFilter] = useState<HabitCategory | 'all'>('all');
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const today = useMemo(() => getToday(), []);
 
@@ -56,11 +61,43 @@ function HabitTrackerContent() {
     return counts;
   }, [activeHabits]);
 
-  // Filter by selected category
+  // Filter by category + search, then sort
   const filteredHabits = useMemo(() => {
-    if (categoryFilter === 'all') return activeHabits;
-    return activeHabits.filter(h => (h.category || 'other') === categoryFilter);
-  }, [activeHabits, categoryFilter]);
+    let result = activeHabits;
+
+    // Category filter
+    if (categoryFilter !== 'all') {
+      result = result.filter(h => (h.category || 'other') === categoryFilter);
+    }
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(h => h.name.toLowerCase().includes(q));
+    }
+
+    // Sort
+    const sorted = [...result];
+    switch (sortBy) {
+      case 'name':
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'streak': {
+        const streakOf = (h: Habit) => calculateStreak(completions.filter(c => c.habit_id === h.id));
+        sorted.sort((a, b) => streakOf(b) - streakOf(a));
+        break;
+      }
+      case 'category':
+        sorted.sort((a, b) => (a.category || 'other').localeCompare(b.category || 'other'));
+        break;
+      case 'newest':
+      default:
+        // Already sorted by created_at desc from the API
+        break;
+    }
+
+    return sorted;
+  }, [activeHabits, categoryFilter, searchQuery, sortBy, completions]);
 
   // Today's completion count — BUG FIX: now filters by today's date
   const todayCompletionsCount = useMemo(() => {
@@ -163,6 +200,44 @@ function HabitTrackerContent() {
             {activeHabits.length > 0 && Object.keys(categoryCounts).length > 1 && (
               <div className="mb-4">
                 <CategoryFilter selected={categoryFilter} onChange={setCategoryFilter} counts={categoryCounts} />
+              </div>
+            )}
+
+            {/* Search + Sort Toolbar */}
+            {activeHabits.length > 2 && (
+              <div className="mb-4 flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search habits..."
+                    className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  <option value="newest">Sort: Newest</option>
+                  <option value="name">Sort: Name</option>
+                  <option value="streak">Sort: Streak</option>
+                  <option value="category">Sort: Category</option>
+                </select>
               </div>
             )}
 
