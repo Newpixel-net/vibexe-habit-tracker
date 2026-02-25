@@ -23,6 +23,7 @@ interface HabitItemProps {
 
 export function HabitItem({ habit, completions, isCompletedToday, onToggle, onToggleDay, onEdit, onArchive, onDelete }: HabitItemProps) {
   const [isToggling, setIsToggling] = useState(false);
+  const [justCompleted, setJustCompleted] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -48,8 +49,13 @@ export function HabitItem({ habit, completions, isCompletedToday, onToggle, onTo
   const handleToggle = async () => {
     if (isToggling) return;
     setIsToggling(true);
+    const wasCompleted = isCompletedToday;
     try {
       await onToggle();
+      if (!wasCompleted) {
+        setJustCompleted(true);
+        setTimeout(() => setJustCompleted(false), 600);
+      }
     } finally {
       setIsToggling(false);
     }
@@ -67,7 +73,7 @@ export function HabitItem({ habit, completions, isCompletedToday, onToggle, onTo
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-5 transition-colors">
+      <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-5 transition-all duration-300 ${justCompleted ? 'animate-completion-flash' : ''}`}>
         {/* Top row: toggle, name, menu */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-2.5 sm:gap-3 flex-1 min-w-0">
@@ -81,6 +87,7 @@ export function HabitItem({ habit, completions, isCompletedToday, onToggle, onTo
                   ? `${colors.border} ${colors.bg} text-white`
                   : 'border-gray-300 dark:border-gray-500 hover:border-gray-400 bg-white dark:bg-gray-700'}
                 ${isToggling ? 'opacity-70' : ''}
+                ${justCompleted ? 'animate-bounce-once' : ''}
               `}
               aria-label={`Mark ${habit.name} as ${isCompletedToday ? 'incomplete' : 'complete'} for today`}
             >
