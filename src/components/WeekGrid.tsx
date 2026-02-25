@@ -1,6 +1,7 @@
 /**
  * Week Grid Component
- * Displays 7-day completion history for a habit
+ * Displays 7-day completion history for a habit.
+ * Days are clickable to toggle completions (including past days).
  */
 
 import React from 'react';
@@ -11,9 +12,10 @@ import { HabitCompletion } from '../types';
 interface WeekGridProps {
   completions: HabitCompletion[];
   color: string;
+  onToggleDay?: (date: Date) => void;
 }
 
-export function WeekGrid({ completions, color }: WeekGridProps) {
+export function WeekGrid({ completions, color, onToggleDay }: WeekGridProps) {
   const days = getLast7Days();
   const today = getToday(); // UTC-normalized — matches all other date logic
 
@@ -28,7 +30,7 @@ export function WeekGrid({ completions, color }: WeekGridProps) {
     if (!isCompleted) {
       return 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500';
     }
-    
+
     const colorMap: Record<string, string> = {
       blue: 'bg-blue-500 text-white',
       green: 'bg-green-500 text-white',
@@ -36,9 +38,13 @@ export function WeekGrid({ completions, color }: WeekGridProps) {
       orange: 'bg-orange-500 text-white',
       pink: 'bg-pink-500 text-white',
     };
-    
+
     return colorMap[colorName] || colorMap.blue;
   };
+
+  const hoverClasses = onToggleDay
+    ? 'cursor-pointer hover:scale-110 hover:shadow-md active:scale-95'
+    : '';
 
   return (
     <div className="flex items-center gap-1">
@@ -47,13 +53,19 @@ export function WeekGrid({ completions, color }: WeekGridProps) {
           <span className="text-[10px] text-gray-400 dark:text-gray-500 mb-1 font-medium">
             {day.dayLabel}
           </span>
-          <div
+          <button
+            type="button"
+            onClick={() => onToggleDay?.(day.date)}
+            disabled={!onToggleDay}
             className={`
               w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold
-              transition-all duration-200
+              transition-all duration-200 focus:outline-none
               ${getColorClasses(day.isCompleted, color)}
               ${day.isToday ? 'ring-2 ring-offset-1 ring-gray-300 dark:ring-gray-500 dark:ring-offset-gray-800' : ''}
+              ${hoverClasses}
+              ${!onToggleDay ? 'cursor-default' : ''}
             `}
+            title={`${day.date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}${day.isCompleted ? ' (completed)' : ''}`}
           >
             {day.isCompleted && (
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -64,7 +76,7 @@ export function WeekGrid({ completions, color }: WeekGridProps) {
                 />
               </svg>
             )}
-          </div>
+          </button>
         </div>
       ))}
     </div>

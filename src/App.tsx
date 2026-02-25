@@ -18,9 +18,14 @@ import { CategoryFilter } from './components/CategoryFilter';
 import { ArchivedHabits } from './components/ArchivedHabits';
 import { StatsPage } from './components/StatsPage';
 import { ToastContainer } from './components/ToastContainer';
+import { ProgressRing } from './components/ProgressRing';
+import { HabitTemplates } from './components/HabitTemplates';
 import { getToday, isSameDay } from './utils/date';
 import { exportHabitsToCSV } from './utils/export';
-import { HabitColor, HabitCategory, AppPage } from './types';
+import { Habit, HabitCompletion, HabitColor, HabitCategory, AppPage } from './types';
+import { calculateStreak } from './utils/streaks';
+
+type SortOption = 'newest' | 'name' | 'streak' | 'category';
 
 function HabitTrackerContent() {
   const { user } = useAuth();
@@ -37,6 +42,8 @@ function HabitTrackerContent() {
   const { addToast } = useToast();
   const [currentPage, setCurrentPage] = useState<AppPage>('habits');
   const [categoryFilter, setCategoryFilter] = useState<HabitCategory | 'all'>('all');
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const today = useMemo(() => getToday(), []);
 
@@ -54,11 +61,43 @@ function HabitTrackerContent() {
     return counts;
   }, [activeHabits]);
 
-  // Filter by selected category
+  // Filter by category + search, then sort
   const filteredHabits = useMemo(() => {
-    if (categoryFilter === 'all') return activeHabits;
-    return activeHabits.filter(h => (h.category || 'other') === categoryFilter);
-  }, [activeHabits, categoryFilter]);
+    let result = activeHabits;
+
+    // Category filter
+    if (categoryFilter !== 'all') {
+      result = result.filter(h => (h.category || 'other') === categoryFilter);
+    }
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(h => h.name.toLowerCase().includes(q));
+    }
+
+    // Sort
+    const sorted = [...result];
+    switch (sortBy) {
+      case 'name':
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'streak': {
+        const streakOf = (h: Habit) => calculateStreak(completions.filter(c => c.habit_id === h.id));
+        sorted.sort((a, b) => streakOf(b) - streakOf(a));
+        break;
+      }
+      case 'category':
+        sorted.sort((a, b) => (a.category || 'other').localeCompare(b.category || 'other'));
+        break;
+      case 'newest':
+      default:
+        // Already sorted by created_at desc from the API
+        break;
+    }
+
+    return sorted;
+  }, [activeHabits, categoryFilter, searchQuery, sortBy, completions]);
 
   // Today's completion count — BUG FIX: now filters by today's date
   const todayCompletionsCount = useMemo(() => {
@@ -74,9 +113,37 @@ function HabitTrackerContent() {
     addToast('success', `"${name}" added`);
   }, [createHabit, addToast]);
 
+  // Streak milestones to celebrate
+  const MILESTONES = [7, 14, 21, 30, 50, 75, 100, 150, 200, 365];
+
   const handleToggle = useCallback(async (habitId: string) => {
+    const wasCompleted = isCompleted(habitId, today);
     await toggleCompletion(habitId, today);
-  }, [toggleCompletion, today]);
+
+    // Check streak milestones and all-done celebration only when marking complete
+    if (!wasCompleted) {
+      setTimeout(() => {
+        const habit = habits.find(h => h.id === habitId);
+        if (!habit) return;
+
+        // Streak milestone check
+        const hCompletions = completions.filter(c => c.habit_id === habitId);
+        const streak = calculateStreak(hCompletions);
+        if (MILESTONES.includes(streak)) {
+          addToast('success', `${streak}-day streak on "${habit.name}"! Keep going!`);
+        }
+
+        // All-done celebration: check if every active habit is now completed today
+        const otherCompleted = activeHabits.every(h => {
+          if (h.id === habitId) return true; // just completed this one
+          return completions.some(c => c.habit_id === h.id && isSameDay(c.completed_date, today));
+        });
+        if (otherCompleted && activeHabits.length > 1) {
+          addToast('success', 'All habits done for today! Amazing work!');
+        }
+      }, 100);
+    }
+  }, [toggleCompletion, today, isCompleted, habits, completions, addToast, activeHabits]);
 
   const handleEdit = useCallback(async (id: string, updates: { name?: string; color?: HabitColor; category?: HabitCategory }) => {
     await updateHabit(id, updates);
@@ -140,6 +207,8 @@ function HabitTrackerContent() {
               <HabitForm onSubmit={handleAddHabit} disabled={isLoading} />
             </div>
 
+            <HabitTemplates onSelect={handleAddHabit} />
+
             {/* Error State */}
             {error && (
               <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 rounded-xl">
@@ -159,6 +228,44 @@ function HabitTrackerContent() {
             {activeHabits.length > 0 && Object.keys(categoryCounts).length > 1 && (
               <div className="mb-4">
                 <CategoryFilter selected={categoryFilter} onChange={setCategoryFilter} counts={categoryCounts} />
+              </div>
+            )}
+
+            {/* Search + Sort Toolbar */}
+            {activeHabits.length > 2 && (
+              <div className="mb-4 flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search habits..."
+                    className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  <option value="newest">Sort: Newest</option>
+                  <option value="name">Sort: Name</option>
+                  <option value="streak">Sort: Streak</option>
+                  <option value="category">Sort: Category</option>
+                </select>
               </div>
             )}
 
@@ -195,6 +302,7 @@ function HabitTrackerContent() {
                     completions={getHabitCompletions(habit.id)}
                     isCompletedToday={isCompleted(habit.id, today)}
                     onToggle={() => handleToggle(habit.id)}
+                    onToggleDay={(date) => toggleCompletion(habit.id, date)}
                     onEdit={(updates) => handleEdit(habit.id, updates)}
                     onArchive={() => handleArchive(habit.id)}
                     onDelete={() => handleDelete(habit.id)}
@@ -210,17 +318,20 @@ function HabitTrackerContent() {
               onDelete={handleDelete}
             />
 
-            {/* Footer Stats */}
+            {/* Footer Stats with Progress Ring */}
             {activeHabits.length > 0 && (
               <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-indigo-500 rounded-full" />
-                    <span>{activeHabits.length} habit{activeHabits.length !== 1 ? 's' : ''}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-green-500 rounded-full" />
-                    <span>{todayCompletionsCount}/{activeHabits.length} today</span>
+                  <ProgressRing completed={todayCompletionsCount} total={activeHabits.length} />
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-indigo-500 rounded-full" />
+                      <span>{activeHabits.length} habit{activeHabits.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-green-500 rounded-full" />
+                      <span>{todayCompletionsCount}/{activeHabits.length} today</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -255,14 +366,50 @@ function AppContent() {
   return <HabitTrackerContent />;
 }
 
+const globalAnimations = `
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes bounce-once {
+  0%, 100% { transform: scale(1); }
+  30% { transform: scale(1.35); }
+  60% { transform: scale(0.9); }
+  80% { transform: scale(1.05); }
+}
+@keyframes completion-flash {
+  0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(99, 102, 241, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-slide-up { animation: slide-up 0.3s ease-out; }
+.animate-scale-in { animation: scale-in 0.2s ease-out; }
+.animate-bounce-once { animation: bounce-once 0.5s ease-out; }
+.animate-completion-flash { animation: completion-flash 0.6s ease-out; }
+.animate-fade-in { animation: fade-in 0.3s ease-out; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+`;
+
 export default function App() {
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </ToastProvider>
-    </ThemeProvider>
+    <>
+      <style>{globalAnimations}</style>
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </ToastProvider>
+      </ThemeProvider>
+    </>
   );
 }

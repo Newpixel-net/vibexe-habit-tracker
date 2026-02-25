@@ -45,7 +45,7 @@ export function useCompletions(userId: string | null): UseCompletionsReturn {
       const result = await app.data.list('habit_completions', {
         filter: {
           user_id: userId,
-          completed_date: { gte: since.toISOString() },
+          completed_date: { gte: since.toISOString().slice(0, 10) },
         },
         sort: 'completed_date',
         order: 'desc',
