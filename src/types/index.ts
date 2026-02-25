@@ -84,10 +84,65 @@ export interface WeekDay {
 
 export type AuthView = 'signup' | 'signin';
 
-export type AppPage = 'habits' | 'stats';
+export type AppPage = 'habits' | 'stats' | 'heatmap' | 'focus' | 'insights' | 'report';
 
 // ── Theme ────────────────────────────────────────────
-export type Theme = 'light' | 'dark' | 'system';
+export type ThemeMode = 'light' | 'dark' | 'system';
+export type ColorTheme = 'default' | 'ocean' | 'sunset' | 'forest' | 'midnight';
+// Keep backward compat alias
+export type Theme = ThemeMode;
+
+export interface ColorThemeConfig {
+  name: string;
+  accent: string;       // primary accent (tailwind class prefix like 'indigo', 'cyan')
+  accentGradient: string; // CSS gradient for accent backgrounds
+  cardBg: string;       // card background class
+  cardBorder: string;   // card border class
+  headerBg: string;     // header background
+}
+
+export const COLOR_THEMES: Record<ColorTheme, ColorThemeConfig> = {
+  default: {
+    name: 'Default',
+    accent: 'indigo',
+    accentGradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+    cardBg: 'bg-white/70 dark:bg-gray-800/70',
+    cardBorder: 'border-gray-200/60 dark:border-gray-700/60',
+    headerBg: 'bg-white/80 dark:bg-gray-900/80',
+  },
+  ocean: {
+    name: 'Ocean',
+    accent: 'cyan',
+    accentGradient: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+    cardBg: 'bg-white/70 dark:bg-slate-800/70',
+    cardBorder: 'border-cyan-200/40 dark:border-cyan-800/40',
+    headerBg: 'bg-white/80 dark:bg-slate-900/80',
+  },
+  sunset: {
+    name: 'Sunset',
+    accent: 'orange',
+    accentGradient: 'linear-gradient(135deg, #f97316, #ef4444)',
+    cardBg: 'bg-white/70 dark:bg-gray-800/70',
+    cardBorder: 'border-orange-200/40 dark:border-orange-800/40',
+    headerBg: 'bg-white/80 dark:bg-gray-900/80',
+  },
+  forest: {
+    name: 'Forest',
+    accent: 'emerald',
+    accentGradient: 'linear-gradient(135deg, #10b981, #059669)',
+    cardBg: 'bg-white/70 dark:bg-gray-800/70',
+    cardBorder: 'border-emerald-200/40 dark:border-emerald-800/40',
+    headerBg: 'bg-white/80 dark:bg-gray-900/80',
+  },
+  midnight: {
+    name: 'Midnight',
+    accent: 'violet',
+    accentGradient: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+    cardBg: 'bg-white/70 dark:bg-gray-800/70',
+    cardBorder: 'border-violet-200/40 dark:border-violet-800/40',
+    headerBg: 'bg-white/80 dark:bg-gray-900/80',
+  },
+};
 
 // ── Toast ────────────────────────────────────────────
 export type ToastType = 'success' | 'error' | 'info';
