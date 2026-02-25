@@ -102,3 +102,38 @@ export function getYesterday(): Date {
   yesterday.setUTCDate(yesterday.getUTCDate() - 1);
   return yesterday;
 }
+
+/**
+ * Check if a specific date has a completion in the list.
+ * Re-exported here so WeekGrid and other components can import from date utils.
+ */
+export function isDateCompleted(
+  completions: { completed_date: string }[],
+  date: Date
+): boolean {
+  return completions.some(c => isSameDay(c.completed_date, date));
+}
+
+/**
+ * Get the last N days including today (oldest first)
+ */
+export function getLastNDays(n: number): Date[] {
+  const days: Date[] = [];
+  const today = getToday();
+
+  for (let i = n - 1; i >= 0; i--) {
+    const date = new Date(today);
+    date.setUTCDate(today.getUTCDate() - i);
+    days.push(date);
+  }
+
+  return days;
+}
+
+/**
+ * Format a date as YYYY-MM-DD for CSV/export
+ */
+export function toDateString(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toISOString().slice(0, 10);
+}

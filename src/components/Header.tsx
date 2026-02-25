@@ -1,13 +1,22 @@
 /**
  * Header Component
- * App header with user menu and logout
+ * App header with navigation, theme toggle, user menu.
  */
 
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../hooks/useTheme';
+import { AppPage, Theme } from '../types';
 
-export function Header() {
+interface HeaderProps {
+  currentPage?: AppPage;
+  onNavigate?: (page: AppPage) => void;
+  onExport?: () => void;
+}
+
+export function Header({ currentPage = 'habits', onNavigate, onExport }: HeaderProps) {
   const { user, signOut, isAuthenticated } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [showMenu, setShowMenu] = useState(false);
 
   const handleSignOut = async () => {
@@ -15,8 +24,20 @@ export function Header() {
     setShowMenu(false);
   };
 
+  const cycleTheme = () => {
+    const order: Theme[] = ['light', 'dark', 'system'];
+    const idx = order.indexOf(theme);
+    setTheme(order[(idx + 1) % order.length]);
+  };
+
+  const themeIcon = theme === 'dark'
+    ? 'M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z'
+    : theme === 'system'
+    ? 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'
+    : 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z';
+
   return (
-    <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
+    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 transition-colors">
       <div className="max-w-3xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
@@ -25,55 +46,102 @@ export function Header() {
             </svg>
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Habit Tracker</h1>
-            <p className="text-sm text-gray-500">Build consistency, one day at a time</p>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Habit Tracker</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">Build consistency, one day at a time</p>
           </div>
         </div>
 
-        {isAuthenticated && user && (
-          <div className="relative">
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                <span className="text-indigo-700 font-semibold text-sm">
-                  {user.display_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || '?'}
-                </span>
-              </div>
-              <span className="hidden sm:block text-sm text-gray-700 font-medium">
-                {user.display_name || user.email}
-              </span>
-              <svg 
-                className={`w-4 h-4 text-gray-400 transition-transform ${showMenu ? 'rotate-180' : ''}`} 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
+        <div className="flex items-center gap-2">
+          {/* Navigation tabs */}
+          {isAuthenticated && onNavigate && (
+            <nav className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 mr-2">
+              <button
+                onClick={() => onNavigate('habits')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  currentPage === 'habits'
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+                Habits
+              </button>
+              <button
+                onClick={() => onNavigate('stats')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  currentPage === 'stats'
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+              >
+                Stats
+              </button>
+            </nav>
+          )}
 
-            {showMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {user.display_name || user.email}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {user.email}
-                  </p>
+          {/* Theme toggle */}
+          <button
+            onClick={cycleTheme}
+            className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label={`Theme: ${theme}`}
+            title={`Theme: ${theme}`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={themeIcon} />
+            </svg>
+          </button>
+
+          {/* User menu */}
+          {isAuthenticated && user && (
+            <div className="relative">
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center">
+                  <span className="text-indigo-700 dark:text-indigo-300 font-semibold text-sm">
+                    {user.display_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || '?'}
+                  </span>
                 </div>
-                <button
-                  onClick={handleSignOut}
-                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                <svg
+                  className={`w-4 h-4 text-gray-400 transition-transform ${showMenu ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  Sign out
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {showMenu && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-20">
+                    <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                        {user.display_name || user.email}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                    </div>
+                    {onExport && (
+                      <button
+                        onClick={() => { setShowMenu(false); onExport(); }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        Export data (CSV)
+                      </button>
+                    )}
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

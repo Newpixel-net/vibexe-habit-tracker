@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { WeekDay } from '../types';
-import { getLast7Days, isDateCompleted } from '../utils/date';
+import { getLast7Days, getToday, isDateCompleted } from '../utils/date';
 import { HabitCompletion } from '../types';
 
 interface WeekGridProps {
@@ -15,8 +15,7 @@ interface WeekGridProps {
 
 export function WeekGrid({ completions, color }: WeekGridProps) {
   const days = getLast7Days();
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = getToday(); // UTC-normalized — matches all other date logic
 
   const weekDays: WeekDay[] = days.map(date => ({
     date,
@@ -27,7 +26,7 @@ export function WeekGrid({ completions, color }: WeekGridProps) {
 
   const getColorClasses = (isCompleted: boolean, colorName: string) => {
     if (!isCompleted) {
-      return 'bg-gray-100 text-gray-400';
+      return 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500';
     }
     
     const colorMap: Record<string, string> = {
@@ -45,7 +44,7 @@ export function WeekGrid({ completions, color }: WeekGridProps) {
     <div className="flex items-center gap-1">
       {weekDays.map((day, index) => (
         <div key={index} className="flex flex-col items-center">
-          <span className="text-[10px] text-gray-400 mb-1 font-medium">
+          <span className="text-[10px] text-gray-400 dark:text-gray-500 mb-1 font-medium">
             {day.dayLabel}
           </span>
           <div
@@ -53,7 +52,7 @@ export function WeekGrid({ completions, color }: WeekGridProps) {
               w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold
               transition-all duration-200
               ${getColorClasses(day.isCompleted, color)}
-              ${day.isToday ? 'ring-2 ring-offset-1 ring-gray-300' : ''}
+              ${day.isToday ? 'ring-2 ring-offset-1 ring-gray-300 dark:ring-gray-500 dark:ring-offset-gray-800' : ''}
             `}
           >
             {day.isCompleted && (

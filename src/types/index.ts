@@ -1,9 +1,8 @@
 /**
- * Habit Tracker - TypeScript Types
- * Central type definitions for the application
+ * Habit Tracker — TypeScript Types
  */
 
-// User types from Vibexe SDK
+// ── User ─────────────────────────────────────────────
 export interface User {
   id: string;
   email: string;
@@ -15,54 +14,8 @@ export interface User {
   created_at: string;
 }
 
-// App-specific types
+// ── Habit Colors ─────────────────────────────────────
 export type HabitColor = 'blue' | 'green' | 'purple' | 'orange' | 'pink';
-
-export interface Habit {
-  id: string;
-  name: string;
-  color: HabitColor;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface HabitCompletion {
-  id: string;
-  habit_id: string;
-  completed_date: string; // ISO date string (midnight normalized)
-  user_id: string;
-  created_at: string;
-}
-
-export interface HabitWithCompletions extends Habit {
-  completions: HabitCompletion[];
-}
-
-export interface WeekDay {
-  date: Date;
-  isCompleted: boolean;
-  isToday: boolean;
-  dayLabel: string;
-}
-
-export interface WeeklyProgress {
-  days: WeekDay[];
-  completionsCount: number;
-  streak: number;
-}
-
-export type AuthView = 'signup' | 'signin';
-
-export interface AuthError {
-  field?: string;
-  message: string;
-}
-
-export interface ValidationError {
-  field: string;
-  message: string;
-}
 
 export const HABIT_COLORS: { name: HabitColor; class: string; bgClass: string }[] = [
   { name: 'blue', class: 'text-blue-500', bgClass: 'bg-blue-500' },
@@ -73,3 +26,74 @@ export const HABIT_COLORS: { name: HabitColor; class: string; bgClass: string }[
 ];
 
 export const DEFAULT_HABIT_COLOR: HabitColor = 'blue';
+
+// ── Categories ───────────────────────────────────────
+export type HabitCategory =
+  | 'health'
+  | 'productivity'
+  | 'learning'
+  | 'fitness'
+  | 'mindfulness'
+  | 'social'
+  | 'finance'
+  | 'creativity'
+  | 'other';
+
+export const HABIT_CATEGORIES: { value: HabitCategory; label: string }[] = [
+  { value: 'health', label: 'Health' },
+  { value: 'productivity', label: 'Productivity' },
+  { value: 'learning', label: 'Learning' },
+  { value: 'fitness', label: 'Fitness' },
+  { value: 'mindfulness', label: 'Mindfulness' },
+  { value: 'social', label: 'Social' },
+  { value: 'finance', label: 'Finance' },
+  { value: 'creativity', label: 'Creativity' },
+  { value: 'other', label: 'Other' },
+];
+
+export const DEFAULT_CATEGORY: HabitCategory = 'other';
+
+// ── Habit ────────────────────────────────────────────
+export interface Habit {
+  id: string;
+  name: string;
+  color: HabitColor;
+  category: HabitCategory;
+  archived: boolean;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// ── HabitCompletion ──────────────────────────────────
+export interface HabitCompletion {
+  id: string;
+  habit_id: string;
+  completed_date: string;
+  user_id: string;
+  created_at: string;
+}
+
+// ── UI helper types ──────────────────────────────────
+export interface WeekDay {
+  date: Date;
+  isCompleted: boolean;
+  isToday: boolean;
+  dayLabel: string;
+}
+
+export type AuthView = 'signup' | 'signin';
+
+export type AppPage = 'habits' | 'stats';
+
+// ── Theme ────────────────────────────────────────────
+export type Theme = 'light' | 'dark' | 'system';
+
+// ── Toast ────────────────────────────────────────────
+export type ToastType = 'success' | 'error' | 'info';
+
+export interface Toast {
+  id: string;
+  type: ToastType;
+  message: string;
+}
