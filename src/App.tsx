@@ -18,6 +18,7 @@ import { CategoryFilter } from './components/CategoryFilter';
 import { ArchivedHabits } from './components/ArchivedHabits';
 import { StatsPage } from './components/StatsPage';
 import { ToastContainer } from './components/ToastContainer';
+import { ProgressRing } from './components/ProgressRing';
 import { getToday, isSameDay } from './utils/date';
 import { exportHabitsToCSV } from './utils/export';
 import { HabitColor, HabitCategory, AppPage } from './types';
@@ -211,17 +212,20 @@ function HabitTrackerContent() {
               onDelete={handleDelete}
             />
 
-            {/* Footer Stats */}
+            {/* Footer Stats with Progress Ring */}
             {activeHabits.length > 0 && (
               <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-indigo-500 rounded-full" />
-                    <span>{activeHabits.length} habit{activeHabits.length !== 1 ? 's' : ''}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-green-500 rounded-full" />
-                    <span>{todayCompletionsCount}/{activeHabits.length} today</span>
+                  <ProgressRing completed={todayCompletionsCount} total={activeHabits.length} />
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-indigo-500 rounded-full" />
+                      <span>{activeHabits.length} habit{activeHabits.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-green-500 rounded-full" />
+                      <span>{todayCompletionsCount}/{activeHabits.length} today</span>
+                    </div>
                   </div>
                 </div>
               </div>
