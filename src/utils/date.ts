@@ -73,7 +73,8 @@ export function getLast7Days(): Date[] {
  * Convert date to ISO string (for database storage)
  */
 export function toISODate(date: Date): string {
-  return normalizeDate(date).toISOString();
+  const d = normalizeDate(date);
+  return d.toISOString().slice(0, 10);
 }
 
 /**
