@@ -1,0 +1,56 @@
+{
+  "platform": "vibexe",
+  "version": "1.0.0",
+  "appId": "bldr_fcjZ7dIk2Ahq3xsZbHJhW",
+  "appName": "Simple Habit Tracker App",
+  "apiOrigin": "https://localhost:3000",
+  "schema": {
+    "version": 1,
+    "entities": [
+      {
+        "name": "Habit",
+        "fields": [
+          {
+            "name": "name",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "color",
+            "type": "text",
+            "required": false
+          },
+          {
+            "name": "user_id",
+            "type": "text",
+            "required": true
+          }
+        ],
+        "tableName": "habits"
+      },
+      {
+        "name": "HabitCompletion",
+        "fields": [
+          {
+            "name": "habit_id",
+            "type": "relation",
+            "required": true,
+            "relationTo": "Habit"
+          },
+          {
+            "name": "completed_date",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "user_id",
+            "type": "text",
+            "required": true
+          }
+        ],
+        "tableName": "habit_completions"
+      }
+    ]
+  },
+  "generatedAt": "2026-02-25T00:32:11.375Z"
+}
