@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 
 export function LoginPage() {
-  const { signUp, signIn, currentView, setCurrentView, loading, error: authError } = useAuth();
+  const { signUp, signIn, currentView, setCurrentView, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -61,8 +61,9 @@ export function LoginPage() {
       } else {
         await signIn(email, password);
       }
-    } catch {
-      setFormError(authError || 'Authentication failed. Please try again.');
+    } catch (err) {
+      // Use the thrown error directly — context error may be stale at this point
+      setFormError(err instanceof Error ? err.message : 'Authentication failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -77,7 +78,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors">
       <div className="flex-1 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
@@ -91,17 +92,17 @@ export function LoginPage() {
                 />
               </svg>
             </div>
-            <h2 className="text-3xl font-bold text-gray-900">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               {isSignUp ? 'Create your account' : 'Welcome back'}
             </h2>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-gray-600 dark:text-gray-400">
               {isSignUp
                 ? 'Start building habits that last'
                 : 'Sign in to continue tracking your habits'}
             </p>
           </div>
 
-          <div className="bg-white py-8 px-4 shadow-sm rounded-2xl sm:px-10 border border-gray-200">
+          <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow-sm rounded-2xl sm:px-10 border border-gray-200 dark:border-gray-700">
             {formError && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <div className="flex items-start gap-2">
@@ -120,7 +121,7 @@ export function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {isSignUp && (
                 <div>
-                  <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Full name
                   </label>
                   <div className="mt-1">
@@ -129,7 +130,7 @@ export function LoginPage() {
                       type="text"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                       placeholder="John Doe"
                     />
                   </div>
@@ -137,7 +138,7 @@ export function LoginPage() {
               )}
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Email address
                 </label>
                 <div className="mt-1">
@@ -146,14 +147,14 @@ export function LoginPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     placeholder="you@example.com"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Password
                 </label>
                 <div className="mt-1">
@@ -162,11 +163,11 @@ export function LoginPage() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     placeholder="••••••••"
                   />
                 </div>
-                {!isSignUp && (
+                {isSignUp && (
                   <p className="mt-1 text-xs text-gray-500">
                     Must be at least 8 characters
                   </p>

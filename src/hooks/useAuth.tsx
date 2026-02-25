@@ -4,10 +4,8 @@
  */
 
 import { useState, useEffect, useCallback, createContext, useContext } from 'react';
-import { VibexeApp } from '@vibexe/sdk';
+import app from '../sdk';
 import { User, AuthView } from '../types';
-
-const app = new VibexeApp({ appId: 'bldr_fcjZ7dIk2Ahq3xsZbHJhW' });
 
 interface AuthContextType {
   user: User | null;

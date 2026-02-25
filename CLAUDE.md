@@ -90,7 +90,9 @@ await app.jobs.create({ name, cronExpression, functionName });
 ### Habit (table: `habits`)
 Fields (id, created_at, updated_at are auto-added):
   - `name`: text (required)
-  - `color`: text
+  - `color`: text — one of: blue, green, purple, orange, pink
+  - `category`: text — one of: health, productivity, learning, fitness, mindfulness, social, finance, creativity, other
+  - `archived`: boolean — soft delete flag (default: false)
   - `user_id`: text (required)
 
 ### HabitCompletion (table: `habit_completions`)
@@ -101,8 +103,12 @@ Fields (id, created_at, updated_at are auto-added):
 
 ## File Structure
 - `App.tsx` — Root component (entry point, default export)
+- `src/sdk.ts` — Shared SDK singleton (all hooks import from here)
 - `vibexe-sdk.ts` — SDK file (auto-injected, do not modify)
-- All other `.tsx`/`.ts` files — Components and utilities
+- `src/hooks/` — useAuth, useHabits, useCompletions, useTheme, useToast
+- `src/components/` — UI components (Header, HabitForm, HabitItem, HabitEditModal, CategoryFilter, StatsPage, ArchivedHabits, etc.)
+- `src/utils/` — date, streaks, quotes, export utilities
+- `src/types/` — TypeScript type definitions
 
 ## Rules
 1. **NEVER** modify `vibexe-sdk.ts` — it is auto-injected by the platform

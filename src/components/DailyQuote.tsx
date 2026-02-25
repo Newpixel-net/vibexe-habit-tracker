@@ -10,11 +10,11 @@ export function DailyQuote() {
   const quote = getDailyQuote();
 
   return (
-    <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 rounded-xl p-4 sm:p-5 mb-6 border border-indigo-100">
+    <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-900/20 dark:via-purple-900/20 dark:to-pink-900/20 rounded-xl p-4 sm:p-5 mb-6 border border-indigo-100 dark:border-indigo-800/40">
       <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+        <div className="flex-shrink-0 w-8 h-8 bg-indigo-100 dark:bg-indigo-800/50 rounded-full flex items-center justify-center">
           <svg
-            className="w-4 h-4 text-indigo-600"
+            className="w-4 h-4 text-indigo-600 dark:text-indigo-400"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -26,10 +26,10 @@ export function DailyQuote() {
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-gray-800 text-sm sm:text-base leading-relaxed italic">
+          <p className="text-gray-800 dark:text-gray-200 text-sm sm:text-base leading-relaxed italic">
             &ldquo;{quote.text}&rdquo;
           </p>
-          <p className="mt-2 text-xs sm:text-sm text-gray-500 font-medium">
+          <p className="mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">
             — {quote.author}
           </p>
         </div>
