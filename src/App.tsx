@@ -195,6 +195,7 @@ function HabitTrackerContent() {
                     completions={getHabitCompletions(habit.id)}
                     isCompletedToday={isCompleted(habit.id, today)}
                     onToggle={() => handleToggle(habit.id)}
+                    onToggleDay={(date) => toggleCompletion(habit.id, date)}
                     onEdit={(updates) => handleEdit(habit.id, updates)}
                     onArchive={() => handleArchive(habit.id)}
                     onDelete={() => handleDelete(habit.id)}

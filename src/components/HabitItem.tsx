@@ -15,12 +15,13 @@ interface HabitItemProps {
   completions: HabitCompletion[];
   isCompletedToday: boolean;
   onToggle: () => Promise<void>;
+  onToggleDay: (date: Date) => Promise<void>;
   onEdit: (updates: { name?: string; color?: HabitColor; category?: HabitCategory }) => Promise<void>;
   onArchive: () => Promise<void>;
   onDelete: () => Promise<void>;
 }
 
-export function HabitItem({ habit, completions, isCompletedToday, onToggle, onEdit, onArchive, onDelete }: HabitItemProps) {
+export function HabitItem({ habit, completions, isCompletedToday, onToggle, onToggleDay, onEdit, onArchive, onDelete }: HabitItemProps) {
   const [isToggling, setIsToggling] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -117,7 +118,7 @@ export function HabitItem({ habit, completions, isCompletedToday, onToggle, onEd
 
           {/* Right: Week Grid + Menu */}
           <div className="flex flex-col items-end gap-2">
-            <WeekGrid completions={completions} color={habit.color} />
+            <WeekGrid completions={completions} color={habit.color} onToggleDay={onToggleDay} />
 
             {/* 3-dot menu */}
             <div className="relative">
